@@ -73,7 +73,7 @@ module RedmineWebhook
     end
 
     private
-    def issue_to_json(issue, controller, time_entry)
+    def issue_to_json(issue, controller)
       {
         :payload => {
           :action => 'opened',
