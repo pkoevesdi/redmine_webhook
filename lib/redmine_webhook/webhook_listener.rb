@@ -43,6 +43,26 @@ module RedmineWebhook
       post(webhooks, journal_to_json(issue, journal, controller))
     end
 
+    def controller_timelog_edit_before_save(context = {})
+      return if skip_webhooks(context)
+      time_entry = context[:time_entry]
+      project = time_entry.project
+      webhooks = Webhook.where(:project_id => project.project.id)
+      webhooks = Webhook.where(:project_id => 0) unless webhooks && webhooks.length > 0
+      return unless webhooks
+      post(webhooks, timeentry_to_json(time_entry))
+    end
+
+    def controller_time_entries_bulk_edit_before_save(context = {})
+      return if skip_webhooks(context)
+      time_entry = context[:time_entry]
+      project = time_entry.project
+      webhooks = Webhook.where(:project_id => project.project.id)
+      webhooks = Webhook.where(:project_id => 0) unless webhooks && webhooks.length > 0
+      return unless webhooks
+      post(webhooks, timeentry_to_json(time_entry))
+    end
+
     def model_changeset_scan_commit_for_issue_ids_pre_issue_update(context = {})
       issue = context[:issue]
       journal = issue.current_journal
@@ -53,12 +73,21 @@ module RedmineWebhook
     end
 
     private
-    def issue_to_json(issue, controller)
+    def issue_to_json(issue, controller, time_entry)
       {
         :payload => {
           :action => 'opened',
           :issue => RedmineWebhook::IssueWrapper.new(issue).to_hash,
           :url => controller.issue_url(issue)
+        }
+      }.to_json
+    end
+
+    def timeentry_to_json(time_entry)
+      {
+        :payload => {
+          :action => 'timeentry',
+          :time_entry => time_entry,
         }
       }.to_json
     end
