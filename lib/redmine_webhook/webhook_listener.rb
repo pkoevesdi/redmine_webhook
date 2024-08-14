@@ -82,12 +82,17 @@ module RedmineWebhook
         }
       }.to_json
     end
+    
 
     def timeentry_to_json(time_entry)
       {
         :payload => {
           :action => 'timeentry',
           :time_entry => time_entry,
+          :custom_field_values => time_entry.custom_field_values.collect { |value| RedmineWebhook::CustomFieldValueWrapper.new(value).to_hash },
+          :issue => RedmineWebhook::IssueWrapper.new(time_entry.issue).to_hash,
+          :activity => time_entry.activity,
+          :user => time_entry.user,
         }
       }.to_json
     end
